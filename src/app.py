@@ -9,7 +9,6 @@ class Events:
         self.MOUSE_4 = False
         self.MOUSE_5 = False
         self.QUIT = False
-        self.MOUSE_RELATIVE = Vector2(0,0)
         self.MOUSE_POS = pg.mouse.get_pos()
         self.KEYDOWN = False
         self.KEYS = set()
