@@ -3,4 +3,5 @@ from pygame import Color, Vector2, Surface
 import pygame as pg
 import json, os
 import random
+from time import time
 pg.font.init()
