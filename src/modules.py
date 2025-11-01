@@ -1,5 +1,5 @@
-from pygame import Color, Surface, Vector2
-from pygame import Color, Vector2, Surface
+from pygame import Color, Surface, Vector2, Rect
+
 import pygame as pg
 import json, os
 import random
