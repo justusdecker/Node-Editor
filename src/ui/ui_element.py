@@ -185,7 +185,7 @@ class UIElement:
             
             #! Only running after pressing M3 why?
             #! The problem is not in the event.system
-
+        self.blocked = True
         return True
     
     def draw(self):
