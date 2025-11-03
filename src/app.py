@@ -1,5 +1,6 @@
 from src.constants import *
 from src.events import Events
+from src.ui.ui_element import UIM
 class App:
     def __init__(self):
         self.is_running = True
@@ -12,8 +13,10 @@ class App:
         while self.is_running:
             self.window.fill((25,25,25))
             self.update()
+            UIM.update()
             self.draw()
             self.event_handler()
+            
         self.destroy()
     
     def update(self):
