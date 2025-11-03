@@ -15,14 +15,7 @@ class UIGroup:
 
 UI_DEFAULT_GROUP = UIGroup('default')
 
-class Anchor:
-    VALID = [
-        'tl','tc','tr',
-        'cl','cc','cr',
-        'lb','cb','rb'
-    ]
-    def __init__(self):
-        pass
+ANCHORS = {'t': -1, 'c': -.5, 'b': 0, 'l': -1, 'r': 0}
 
 class UIElement: ...
 class UIElement:
@@ -48,12 +41,17 @@ class UIElement:
         self.anchor = kwargs.get('anchor', 'cc')
         self.parent = kwargs.get('parent',None)
         
-        self.callback_hover = kwargs.get('cb_hover',None)
-        self.callback_unhover = kwargs.get('cb_unhover',None)
-        self.callback_click = kwargs.get('cb_click',None)
-        self.callback_drag = kwargs.get('cb_drag',None)
+        self.callback_hover = kwargs.get('cb_hover',lambda x: print(x))
+        self.callback_unhover = kwargs.get('cb_unhover',lambda x: print(x))
+        self.callback_lclick = kwargs.get('cb_lclick',lambda x: print(x))
+        self.callback_rclick = kwargs.get('cb_rclick',lambda x: print(x))
+        self.callback_dclick = kwargs.get('cb_dclick',lambda x: print(x))
+        self.callback_drag = kwargs.get('cb_drag',lambda x: print(x))
+        self.callback_wheel = kwargs.get('cb_wheel',lambda x: print(x))
+        self.callback_keypress = kwargs.get('cb_keypress',lambda x: print(x))
         
         self.blocked = False
+        self.click_offset = Vector2(0,0)
         
         UIElement.uid += 1
         UIM.add_to_queue(self)
@@ -69,7 +67,7 @@ class UIElement:
     def hover(self) -> bool:
         x, y = self.abs_offset
         w,h = self.size.x,self.size.y
-        g,l = self.event.MOUSE_POS()
+        g,l = self.event.MOUSE_POS
         return g > x and l > y and g < x + w and l < y + h
     
     @property
@@ -87,7 +85,11 @@ class UIElement:
         """
         Calculates the offset for the anchor: Center, LEFT etc.
         """
-        return
+        #TODO add offset code here
+        x,y = self.anchor
+        self.size + Vector2(ANCHORS[x], ANCHORS[y])
+        
+        return self.size + Vector2(ANCHORS[x], ANCHORS[y])
     
     @property
     def parent_offset(self) -> Vector2:
@@ -127,10 +129,68 @@ class UIElement:
             
         return parent
     
-    def update(self): ...
+    def update(self): 
+        # self.last_frame_hold to False if not pressed anymore
+        # self.last_frame_hold must have a multiframe puffer preventing unwanted drags.
+        # So self.last_frame_hold must be >= last_time + 0.2 and after that the self.dragging will be set to true
+        
+        
+        #! If a object is dragged, only draw other update, DO NOT UPDATE!
+        
+        # Updating position on dragging if enabled
+        if self.event.MOUSE_MIDDLE and self.is_dragging:
+            self.pos = self.event.MOUSE_POS + self.click_offset
+        
+        # Resets the ability to use the UIE
+        # Currently it is pretty simple and will prevent from pressing Mouse 1 after Mouse 3 etc.
+        if not self.event.MOUSE_LEFT \
+            and not self.event.MOUSE_RIGHT \
+            and not self.event.MOUSE_MIDDLE \
+            and not self.event.KEYS \
+            and not self.event.DOUBLE_CLICK\
+            and not self.event.WHEEL:
+            self.is_dragging = False
+            self.blocked = False
+            self.click_offset = Vector2(0,0)
+            return False
+
+        is_free = self.hover and not self.blocked
+        
+        # Click only one time, self.last_frame_hold to time
+        if self.event.MOUSE_LEFT and is_free:
+            self.callback_lclick(self)
+        
+        # UI Double Clicked
+        if self.event.DOUBLE_CLICK and is_free: 
+            self.callback_dclick(self)
+            
+        # Right click
+        if self.event.MOUSE_RIGHT and is_free:
+            self.callback_rclick(self)
+            
+        # A key was pressed while hover
+        if self.event.KEYDOWN and self.event.KEYS and is_free:
+            self.callback_keypress(self)
+
+        # Dragging
+        if self.event.MOUSE_MIDDLE and is_free:
+            self.is_dragging = True
+            self.click_offset = self.pos - self.event.MOUSE_POS
+            self.callback_drag(self)
+        
+        # Scrolling
+        if self.event.WHEEL and is_free:
+            print('lok')
+            self.callback_wheel(self)
+            
+            #! Only running after pressing M3 why?
+            #! The problem is not in the event.system
+
+        return True
     
     def draw(self):
         self.app.window.blit(self.image,self.abs_offset)
+        pg.draw.rect(self.app.window, (255,0,0), (self.abs_offset.x, self.abs_offset.y, self.size.x, self.size.y))
 
     def destroy(self):
         UIM.remove_from_queue(self)
@@ -168,8 +228,8 @@ class UIManager:
         HUD LAYER = 1
         BG LAYER = 2
         """
-        _q0 = [(o.layer + o.o_layer, o.id) for o in self.QUEUE if not o.o_layer]
-        _q1 = [(o.layer + o.o_layer, o.id) for o in self.QUEUE if o.o_layer]
+        _q0 = [(o.layer + o.o_layer, o.uid) for o in self.QUEUE if not o.o_layer]
+        _q1 = [(o.layer + o.o_layer, o.uid) for o in self.QUEUE if o.o_layer]
             
         _s0 = sorted(
             _q0,
@@ -185,16 +245,17 @@ class UIManager:
     def __get_object_by_id(self, id: int):
         if id in self.uids:
             for o in self.QUEUE:
-                if o.id == id:
+                if o.uid == id:
                     return o
+        assert id not in self.uids
     
-    def update(self, groups: list | tuple):
+    def update(self, groups: list | tuple | None = None):
         ids = self.__get_ordered_by_layers()
-        
+        ids = ids[0] + ids[1]
         for id in ids[::-1]:
             object = self.__get_object_by_id(id)
             if not object.visible or \
-                not object.group in groups:
+                (groups and not object.group in groups):
                  # Skip unwanted groups & not visible uie's
                 pass
             if object.update(): # Object has been interacted with. Break out.
@@ -203,7 +264,7 @@ class UIManager:
         for id in ids:
             object = self.__get_object_by_id(id)
             
-            if object.group in groups: # Skip unwanted groups
+            if groups and object.group in groups: # Skip unwanted groups
                 continue
             
             object.draw()
