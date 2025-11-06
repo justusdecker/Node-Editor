@@ -29,6 +29,7 @@ class UIElement:
                  pos: Vector2,
                  size: Vector2,
                  ux: UXWrapper | None = None,
+                 draggable: bool = False,
                  **kwargs):
         
         self.app = app
@@ -39,7 +40,7 @@ class UIElement:
         self.event: Events = self.app.events
         self.pos = pos
         self.size = size
-        
+        self.draggable = draggable
         self.group = kwargs.get('group',UI_DEFAULT_GROUP)
         
         self.layer = kwargs.get('layer',0)
@@ -137,6 +138,46 @@ class UIElement:
             
         return parent
     
+    def mouse_interaction(self):
+        
+        # Click only one time, self.last_frame_hold to time
+        if self.event.MOUSE_LEFT and self.is_free:
+            self.callback_lclick(self)
+            self.ux.set_mode(2)
+        
+        # UI Double Clicked
+        if self.event.DOUBLE_CLICK and self.is_free: 
+            self.callback_dclick(self)
+            self.ux.set_mode(2)
+            
+        # Right click
+        if self.event.MOUSE_RIGHT and self.is_free:
+            self.callback_rclick(self)
+            
+        # A key was pressed while hover
+        if self.event.KEYDOWN and self.event.KEYS and self.is_free:
+            self.callback_keypress(self)
+        
+        if self.event.WHEEL and self.is_free:
+            self.callback_wheel(self)
+        
+    def mouse_interaction_ex(self):
+        # Dragging
+        if self.event.MOUSE_MIDDLE and self.is_free:
+            self.is_dragging = True
+            self.click_offset = self.pos - self.event.MOUSE_POS
+            self.callback_drag(self)
+            self.ux.set_mode(2)
+        
+    def keyboard_interaction(self): # Used for Shortcuts
+        ...
+    def keyboard_interaction_ex(self): # Used for TextInputSystems
+        ...
+    
+    @property
+    def is_free(self) -> bool:
+        return self.hover and not self.blocked
+    
     def update(self): 
         # self.last_frame_hold to False if not pressed anymore
         # self.last_frame_hold must have a multiframe puffer preventing unwanted drags.
@@ -162,45 +203,15 @@ class UIElement:
             self.click_offset = Vector2(0,0)
             UIM.blocked = -1
             return False
+        
+        self.mouse_interaction()
 
-        is_free = self.hover and not self.blocked
+        if self.draggable:
+            self.mouse_interaction_ex()
         
-        # Click only one time, self.last_frame_hold to time
-        if self.event.MOUSE_LEFT and is_free:
-            self.callback_lclick(self)
-            self.ux.set_mode(2)
-        
-        # UI Double Clicked
-        if self.event.DOUBLE_CLICK and is_free: 
-            self.callback_dclick(self)
-            self.ux.set_mode(2)
-            
-        # Right click
-        if self.event.MOUSE_RIGHT and is_free:
-            self.callback_rclick(self)
-            
-        # A key was pressed while hover
-        if self.event.KEYDOWN and self.event.KEYS and is_free:
-            self.callback_keypress(self)
-
-        # Dragging
-        if self.event.MOUSE_MIDDLE and is_free:
-            self.is_dragging = True
-            self.click_offset = self.pos - self.event.MOUSE_POS
-            self.callback_drag(self)
-            self.ux.set_mode(2)
-        
-        # Scrolling
-        if self.event.WHEEL and is_free:
-            print('lok')
-            self.callback_wheel(self)
-            
-            #! Only running after pressing M3 why?
-            #! The problem is not in the event.system
-            
+        self.keyboard_interaction()
         
         self.blocked = any([self.event.MOUSE_LEFT,self.event.MOUSE_RIGHT,self.event.MOUSE_MIDDLE,self.event.KEYS,self.event.DOUBLE_CLICK,self.event.WHEEL]) and self.hover
-        print(self.uid,self.blocked)
         return self.blocked
     
     def draw(self):
@@ -208,13 +219,24 @@ class UIElement:
         pg.draw.rect(self.app.window, (255,0,0), (self.abs_offset.x, self.abs_offset.y, self.size.x, self.size.y))
         
         if not self.blocked and UIM.blocked == -1:
-            print(self.uid, self.blocked)
             self.ux.set_mode(0)
         self.ux.draw(self.app.window,self.abs_offset)
+        
     def destroy(self):
         UIM.remove_from_queue(self)
         del self
-    
+
+class TextInput(UIElement):
+    def __init__(self, app, pos, size, ux = None, draggable = False, **kwargs):
+        super().__init__(app, pos, size, ux, draggable, **kwargs)
+        self.text = ''
+        {getattr(pg,f'K_{l}'): (l, u) for l,u in zip('0123456789abcdefghijklmnopqrstuvwxyz','=!"§$%&/()ABCDEFGHIJKLMNOPQRSTUVWXYZ')}
+
+        shift = pg.K_LSHIFT | pg.K_RSHIFT
+        pg.K_DELETE
+        pg.K_RETURN
+
+
 class UIManager:
     def __init__(self):
         self.QUEUE = []
@@ -298,4 +320,3 @@ class UIManager:
 
 UIM = UIManager()
 
-    
