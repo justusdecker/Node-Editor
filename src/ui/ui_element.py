@@ -5,6 +5,7 @@ Copy the source code from my pygameEngine & refactor it to match the project req
 """
 
 from src.constants import *
+from src.ui.ux_element import UXRenderer, UXWrapper, UIELEMENT_DEFAULT
 from src.events import Events
 
 class UIGroup:
@@ -22,13 +23,19 @@ class UIElement:
     """
     The Base Class for UIElements
     """
-    uid = 0
+    __uid = 0
     def __init__(self,
                  app,
                  pos: Vector2,
                  size: Vector2,
+                 ux: UXWrapper | None = None,
                  **kwargs):
+        
         self.app = app
+        if ux is None:
+            self.ux = UXWrapper(UIELEMENT_DEFAULT)
+        else: 
+            self.ux = ux
         self.event: Events = self.app.events
         self.pos = pos
         self.size = size
@@ -41,19 +48,20 @@ class UIElement:
         self.anchor = kwargs.get('anchor', 'cc')
         self.parent = kwargs.get('parent',None)
         
-        self.callback_hover = kwargs.get('cb_hover',lambda x: print(x))
-        self.callback_unhover = kwargs.get('cb_unhover',lambda x: print(x))
-        self.callback_lclick = kwargs.get('cb_lclick',lambda x: print(x))
+        self.callback_hover = kwargs.get('cb_hover',lambda x: print(x)) #! change ux
+        self.callback_unhover = kwargs.get('cb_unhover',lambda x: print(x)) #! change ux
+        self.callback_lclick = kwargs.get('cb_lclick',lambda x: print(x)) #! change ux
         self.callback_rclick = kwargs.get('cb_rclick',lambda x: print(x))
-        self.callback_dclick = kwargs.get('cb_dclick',lambda x: print(x))
-        self.callback_drag = kwargs.get('cb_drag',lambda x: print(x))
+        self.callback_dclick = kwargs.get('cb_dclick',lambda x: print(x)) #! change ux
+        self.callback_drag = kwargs.get('cb_drag',lambda x: print(x)) #! change ux
         self.callback_wheel = kwargs.get('cb_wheel',lambda x: print(x))
         self.callback_keypress = kwargs.get('cb_keypress',lambda x: print(x))
         
         self.blocked = False
         self.click_offset = Vector2(0,0)
         
-        UIElement.uid += 1
+        UIElement.__uid += 1
+        self.uid = UIElement.__uid
         UIM.add_to_queue(self)
     
     @property
@@ -152,6 +160,7 @@ class UIElement:
             self.is_dragging = False
             self.blocked = False
             self.click_offset = Vector2(0,0)
+            UIM.blocked = -1
             return False
 
         is_free = self.hover and not self.blocked
@@ -159,10 +168,12 @@ class UIElement:
         # Click only one time, self.last_frame_hold to time
         if self.event.MOUSE_LEFT and is_free:
             self.callback_lclick(self)
+            self.ux.set_mode(2)
         
         # UI Double Clicked
         if self.event.DOUBLE_CLICK and is_free: 
             self.callback_dclick(self)
+            self.ux.set_mode(2)
             
         # Right click
         if self.event.MOUSE_RIGHT and is_free:
@@ -177,6 +188,7 @@ class UIElement:
             self.is_dragging = True
             self.click_offset = self.pos - self.event.MOUSE_POS
             self.callback_drag(self)
+            self.ux.set_mode(2)
         
         # Scrolling
         if self.event.WHEEL and is_free:
@@ -185,13 +197,20 @@ class UIElement:
             
             #! Only running after pressing M3 why?
             #! The problem is not in the event.system
-        self.blocked = True
-        return True
+            
+        
+        self.blocked = any([self.event.MOUSE_LEFT,self.event.MOUSE_RIGHT,self.event.MOUSE_MIDDLE,self.event.KEYS,self.event.DOUBLE_CLICK,self.event.WHEEL]) and self.hover
+        print(self.uid,self.blocked)
+        return self.blocked
     
     def draw(self):
         self.app.window.blit(self.image,self.abs_offset)
         pg.draw.rect(self.app.window, (255,0,0), (self.abs_offset.x, self.abs_offset.y, self.size.x, self.size.y))
-
+        
+        if not self.blocked and UIM.blocked == -1:
+            print(self.uid, self.blocked)
+            self.ux.set_mode(0)
+        self.ux.draw(self.app.window,self.abs_offset)
     def destroy(self):
         UIM.remove_from_queue(self)
         del self
@@ -199,6 +218,7 @@ class UIElement:
 class UIManager:
     def __init__(self):
         self.QUEUE = []
+        self.blocked = -1
     
     def add_to_queue(self,object):
         """
@@ -252,14 +272,17 @@ class UIManager:
     def update(self, groups: list | tuple | None = None):
         ids = self.__get_ordered_by_layers()
         ids = ids[0] + ids[1]
+        
         for id in ids[::-1]:
             object = self.__get_object_by_id(id)
             if not object.visible or \
                 (groups and not object.group in groups):
-                 # Skip unwanted groups & not visible uie's
+                # Skip unwanted groups & not visible uie's
                 pass
+            if self.blocked != -1 and self.blocked != object.uid: 
+                continue # other UIE has higher priority because it is actually running(drag&drop)
             if object.update(): # Object has been interacted with. Break out.
-                break
+                self.blocked = object.uid
         
         for id in ids:
             object = self.__get_object_by_id(id)
