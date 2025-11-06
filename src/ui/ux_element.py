@@ -38,17 +38,17 @@ class UXRect(UXElement):
         if isinstance(self.border_radius, int):
             self.border_radius = UX4Param(*[self.border_radius]*4)
         self.color = color
-        self.offset = offset
+        self.pos = offset
         self.size = size
         self.width = width
         
-    def draw(self, surf: Surface):
+    def draw(self, surf: Surface, offset: Vector2):
         pg.draw.rect(surf, 
                      self.color, 
-                     (self.offset.x,self.offset.y, self.size.x,self.y),
+                     (offset.x + self.pos.x,offset.y + self.pos.y, self.size.x,self.size.y),
                      self.width,
                      border_radius=-1,
-                     *self.border_radius.options
+                     #*self.border_radius.options
                      )
 
 class UXCircle(UXElement): 
@@ -122,6 +122,13 @@ class UXImage(UXElement):
 
 class UXText(UXElement): ...
 
+UIELEMENT_DEFAULT = [
+    UXRect(-1,Color('#484848'),size=Vector2(15,15)),
+    UXRect(-1,Color('#969696'),size=Vector2(15,15)),
+    UXRect(-1,Color('#ffffff'),size=Vector2(15,15)),
+    UXRect(-1,Color('#000000'),size=Vector2(15,15))
+]
+
 class UXRenderer:
     def __init__(self,
                  ui,
@@ -129,7 +136,27 @@ class UXRenderer:
         self.ui = ui
         self.ux = ux
         self.draw()
-    def draw(self):
-        self.image = pg.Surface(self.ui.size)
+    def draw(self, surf: Surface, offset: Vector2):
         for element in self.ux:
-            element.draw()
+            
+            element.draw(surf, offset)
+            
+class UXWrapper:
+    def __init__(self, ux: list[UXRenderer]):
+        
+        self.ux = ux
+        self.set_mode(0)
+    
+    def draw(self,surf: Surface, offset: Vector2):
+        self.ux[self.selected].draw(surf, offset)
+        
+    def set_mode(self,type: int):
+        """
+        (0) normal
+        (1) hover
+        (2) click
+        (3) disabled
+        """
+        self.selected = type
+        
+        
