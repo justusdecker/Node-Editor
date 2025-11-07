@@ -120,19 +120,45 @@ class UXImage(UXElement):
     def draw(self, surf):
         surf.blit(self.image, self.pos)
 
-class UXText(UXElement): ...
+FONT = pg.font.SysFont('Consolas',13)
+
+class UXText(UXElement):
+    # + Add a snap point for x, so the text will not go outside the element!
+    def __init__(self, pos: Vector2 = Vector2(0,0), color: Color = Color('#dddddd'), anchor = 0,text_get_callback = lambda: ""):
+        self.anchor = anchor
+        self.pos = pos
+        self.text_get_callback = text_get_callback
+        super().__init__()
+    @property
+    def anchor_offset(self) -> Vector2:
+        return [0,0.5,1][self.anchor]
+    def draw(self, surf: Surface, offset: Vector2):
+        text = self.text_get_callback()
+        rendered = FONT.render(text, True, Color('#454545'))
+        size = Vector2(*rendered.get_size())
+        surf.blit(rendered, self.pos + offset - (size * self.anchor_offset))
+        
+        
 
 UIELEMENT_DEFAULT = [
-    UXRect(-1,Color('#484848'),size=Vector2(15,15)),
-    UXRect(-1,Color('#969696'),size=Vector2(15,15)),
-    UXRect(-1,Color('#ffffff'),size=Vector2(15,15)),
-    UXRect(-1,Color('#000000'),size=Vector2(15,15))
+    [UXRect(-1,Color('#484848'),size=Vector2(15,15))],
+    [UXRect(-1,Color('#969696'),size=Vector2(15,15))],
+    [UXRect(-1,Color('#ffffff'),size=Vector2(15,15))],
+    [UXRect(-1,Color('#000000'),size=Vector2(15,15))]
+]
+
+
+UIELEMENT_TEXT = [
+    [UXText(color=Color('#484848'))],
+    [UXText(color=Color('#969696'))],
+    [UXText(color=Color('#ffffff'))],
+    [UXText(color=Color('#000000'))]
 ]
 
 class UXRenderer:
     def __init__(self,
                  ui,
-                 ux: list[UXElement]):
+                 ux: list[list[UXElement]]):
         self.ui = ui
         self.ux = ux
         self.draw()
@@ -142,13 +168,14 @@ class UXRenderer:
             element.draw(surf, offset)
             
 class UXWrapper:
-    def __init__(self, ux: list[UXRenderer]):
+    def __init__(self, ux: list[list[UXRenderer]]):
         
         self.ux = ux
         self.set_mode(0)
     
     def draw(self,surf: Surface, offset: Vector2):
-        self.ux[self.selected].draw(surf, offset)
+        for ux in self.ux[self.selected]:
+            ux.draw(surf, offset)
         
     def set_mode(self,type: int):
         """
