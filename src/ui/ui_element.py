@@ -5,7 +5,7 @@ Copy the source code from my pygameEngine & refactor it to match the project req
 """
 
 from src.constants import *
-from src.ui.ux_element import UXRenderer, UXWrapper, UIELEMENT_DEFAULT
+from src.ui.ux_element import UXRenderer, UXWrapper, UIELEMENT_DEFAULT, UIELEMENT_TEXT, UXText
 from src.events import Events
 
 class UIGroup:
@@ -217,7 +217,7 @@ class UIElement:
     def draw(self):
         self.app.window.blit(self.image,self.abs_offset)
         pg.draw.rect(self.app.window, (255,0,0), (self.abs_offset.x, self.abs_offset.y, self.size.x, self.size.y))
-        
+
         if not self.blocked and UIM.blocked == -1:
             self.ux.set_mode(0)
         self.ux.draw(self.app.window,self.abs_offset)
@@ -227,15 +227,83 @@ class UIElement:
         del self
 
 class TextInput(UIElement):
-    def __init__(self, app, pos, size, ux = None, draggable = False, **kwargs):
+    """
+    A Default TextInput
+    """
+    TRANSLATION_TABLE = {getattr(pg,f'K_{l}'): (l, u) for l,u in zip('0123456789abcdefghijklmnopqrstuvwxyz','=!"§$%&/()ABCDEFGHIJKLMNOPQRSTUVWXYZ')}
+    def __init__(self, app, pos, size, ux = None, draggable = False, multiline: bool = False, **kwargs):
+        # click outside or returning will set is_editing to false
+        """
+        To reset the is_editing variable we need to inject this into UIM
+        from there it will check the id & outside_clicks so it can reset
+        
+        in UIM:
+            if self.is_editing: break # will break because the other elements should be not interacted with!
+            if object.is_editing:
+                if not object.hover and object.event.MOUSE_LEFT:
+                    object.is_editing = False
+        """
+        
+        # We need UXFont
+        # The font can have its own anchors left, center, right
+        kwargs['cb_lclick'] = self.set_edit
+        if ux is None:
+            
+            UIELEMENT_TEXT = [
+            [UXText(color=Color('#484848'),text_get_callback=self.get_text)],
+            [UXText(color=Color('#969696'),text_get_callback=self.get_text)],
+            [UXText(color=Color('#ffffff'),text_get_callback=self.get_text)],
+            [UXText(color=Color('#000000'),text_get_callback=self.get_text)]
+        ]
+            ux = UXWrapper(UIELEMENT_TEXT)
         super().__init__(app, pos, size, ux, draggable, **kwargs)
-        self.text = ''
-        {getattr(pg,f'K_{l}'): (l, u) for l,u in zip('0123456789abcdefghijklmnopqrstuvwxyz','=!"§$%&/()ABCDEFGHIJKLMNOPQRSTUVWXYZ')}
+        
+        self.text = 'abc'
+        self.is_editing = False
+        self.pressed_keys = set()
+    def get_text(self) -> str:
+        return self.text
+    def set_edit(self,*_):
+        self.is_editing = True
+    @property
+    def delete(self) -> bool:
+        return pg.K_DELETE in self.event.KEYS or pg.K_BACKSPACE in self.event.KEYS
+    @property
+    def _return(self) -> bool:
+        return pg.K_RETURN in self.event.KEYS
+    @property
+    def shift(self) -> bool:
+        return pg.K_LSHIFT in self.event.KEYS or pg.K_RSHIFT in self.event.KEYS
+    def set_used_keys(self):
+        for key in self.event.KEYS:
+            self.pressed_keys.add(key)
+    def keyboard_interaction(self):
+        if self._return:  # Add and for spam
+            self.set_used_keys()
+            return
+        if self.delete: # Add and for spam
+            self.text = self.text[:-1] if self.text else ''
+            self.set_used_keys()
+            return
+        #! Does not reset properly
+        #! pressing only one key is no problem
+        #! pressing multiple keys, freezes the app for a while.
+        #! AND
+        #! TextInput does not stay like it should.
+        text = [self.TRANSLATION_TABLE.get(key,'')[self.shift] for key in self.event.KEYS if key not in self.pressed_keys]
+        self.set_used_keys()
+        if text:
+            self.text += ''.join(text)
+        if not self.event.KEYS:# ! Does not work
+            self.pressed_keys = set()
+        print(text)
 
-        shift = pg.K_LSHIFT | pg.K_RSHIFT
-        pg.K_DELETE
-        pg.K_RETURN
+class UISpinBox(UIElement): ...
+class UIColorPicker(UIElement): ...
+class UIDropDown(UIElement): ...
 
+class UIMenuBar(UIElement): ...
+class UIMenuItem(UIElement): ...
 
 class UIManager:
     def __init__(self):
