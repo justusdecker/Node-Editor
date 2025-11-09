@@ -1,11 +1,7 @@
 
-"""
-For all the following:
-Copy the source code from my pygameEngine & refactor it to match the project requirements
-"""
-
+from typing import Callable
 from src.constants import *
-from src.ui.ux_element import UXRenderer, UXWrapper, UIELEMENT_DEFAULT, UIELEMENT_TEXT, UXText
+from src.ui.ux_element import UXRenderer, UXWrapper, UIELEMENT_DEFAULT, UIELEMENT_TEXT, UXText, UXRect
 from src.events import Events
 
 class UIGroup:
@@ -227,11 +223,20 @@ class UIElement:
         del self
 
 class TextInput(UIElement):
+    #! Add blocking: out of bounds write
     """
     A Default TextInput
     """
     TRANSLATION_TABLE = {getattr(pg,f'K_{l}'): (l, u) for l,u in zip('0123456789abcdefghijklmnopqrstuvwxyz','=!"§$%&/()ABCDEFGHIJKLMNOPQRSTUVWXYZ')}
-    def __init__(self, app, pos, size, ux = None, draggable = False, multiline: bool = False, **kwargs):
+    TRANSLATION_TABLE[pg.K_SPACE] = (' ', ' ')
+    TRANSLATION_TABLE[pg.K_RETURN] = ('', '\n')
+    TRANSLATION_TABLE[pg.K_PERIOD] = ('.', ':')
+    def __init__(self, app, pos, size, ux = None, draggable = False, multiline: bool = False, max_length: int = -1, type: int = 2, **kwargs):
+        """
+        Type 0: takes all(str)
+        Type 1: takes only(int)
+        Type 2: takes int & float
+        """
         # click outside or returning will set is_editing to false
         """
         To reset the is_editing variable we need to inject this into UIM
@@ -261,13 +266,16 @@ class TextInput(UIElement):
         self.text = 'abc'
         self.is_editing = False
         self.pressed_keys = set()
+        self.multiline = multiline
+        self.max_length = max_length
+        self.type = type
     def get_text(self) -> str:
         return self.text
     def set_edit(self,*_):
         self.is_editing = True
     @property
     def delete(self) -> bool:
-        return pg.K_DELETE in self.event.KEYS or pg.K_BACKSPACE in self.event.KEYS
+        return pg.K_BACKSPACE in self.event.KEYS
     @property
     def _return(self) -> bool:
         return pg.K_RETURN in self.event.KEYS
@@ -277,31 +285,68 @@ class TextInput(UIElement):
     def set_used_keys(self):
         for key in self.event.KEYS:
             self.pressed_keys.add(key)
+    
+    def type_check(self, text: str) -> str:
+        match self.type:
+            case 1: 
+                if text.isdecimal(): return text
+                return ''
+            case 2:
+                try:
+                    float(self.text + text)
+                    return text
+                except:
+                    return ''
+            case _: return text
+    
     def keyboard_interaction(self):
-        if self._return:  # Add and for spam
+        if not self.shift and self._return and not pg.K_RETURN in self.pressed_keys:  # Add and for spam
             self.set_used_keys()
             return
-        if self.delete: # Add and for spam
+        if self.delete and not pg.K_BACKSPACE in self.pressed_keys : # Add and for spam
             self.text = self.text[:-1] if self.text else ''
             self.set_used_keys()
             return
-        #! Does not reset properly
-        #! pressing only one key is no problem
-        #! pressing multiple keys, freezes the app for a while.
-        #! AND
-        #! TextInput does not stay like it should.
-        text = [self.TRANSLATION_TABLE.get(key,'')[self.shift] for key in self.event.KEYS if key not in self.pressed_keys]
+        text = [self.TRANSLATION_TABLE.get(key,('',''))[self.shift] for key in self.event.KEYS if key not in self.pressed_keys]
+        if not self.multiline:
+            text = text.replace('\n','')
         self.set_used_keys()
+        if self.max_length != -1 and len(self.text) + len(text) > self.max_length: 
+            
+            return
         if text:
-            self.text += ''.join(text)
-        if not self.event.KEYS:# ! Does not work
-            self.pressed_keys = set()
+            self.text += self.type_check(''.join(text))
+        
         print(text)
 
 class UISpinBox(UIElement): ...
 class UIColorPicker(UIElement): ...
-class UIDropDown(UIElement): ...
-
+class UIDropDown:
+    def __init__(self,
+                 app,
+                 pos: Vector2,
+                 **kwargs):
+        self.app = app
+        self.head = UIElement(app, Vector2(0,0),Vector2(32,16),draggable=True)
+        self.sub = []
+        
+    def get_text(self,id: int):
+        return self.texts[id]
+    def set_subs(self, ltext: list[str], lcom: list[Callable] | None = None):
+        self.texts = []
+        if lcom is None:
+            lcom = [lambda *x: None for i in ltext]
+        for i, (t, c) in enumerate(zip(ltext, lcom)):
+            self.texts.append(t)
+            cb = lambda: t
+            ux = [
+                [UXRect(-1,Color(col),size=Vector2(32,16)),
+                 UXText(text_get_callback=cb)] for col in ('#484848', '#969696', '#ffffff', '#000000')#! Has no effect on rendering
+            ]
+            print(t, c(), cb(),i )
+            UIElement(self.app, Vector2(0,(i+1) * 16),Vector2(32,16),draggable=False,ux=UXWrapper(ux), parent=self.head)
+            
+        
 class UIMenuBar(UIElement): ...
 class UIMenuItem(UIElement): ...
 
@@ -371,6 +416,8 @@ class UIManager:
                 pass
             if self.blocked != -1 and self.blocked != object.uid: 
                 continue # other UIE has higher priority because it is actually running(drag&drop)
+            if hasattr(object, 'pressed_keys') and object.pressed_keys and not object.event.KEYS:
+                object.pressed_keys = set()
             if object.update(): # Object has been interacted with. Break out.
                 self.blocked = object.uid
         
