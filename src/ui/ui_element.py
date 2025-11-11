@@ -1,5 +1,3 @@
-
-from typing import Callable
 from src.constants import *
 from src.ui.ux_element import UXRenderer, UXWrapper, UIELEMENT_DEFAULT, UIELEMENT_TEXT, UXText, UXRect
 from src.events import Events
@@ -222,8 +220,46 @@ class UIElement:
         UIM.remove_from_queue(self)
         del self
 
+class SpecialKeyStates:
+    IDLE = 0
+    WAITING_FOR_DELAY = 1
+    REPEATING = 2
+    
+class SpecialKey:
+    DELAY = 0
+    REPEAT = 0
+    def __init__(self, delay_ms: int, repeat_ms: int):
+        self.REPEAT_MS = repeat_ms
+        self.DELAY_MS = delay_ms
+        self.last_press_time = 0.0
+        self.last_repeat_time = 0.0
+        self.state = SpecialKeyStates.IDLE
+        self.pressed = False
+    def reset(self):
+        self.state = SpecialKeyStates.IDLE
+    def update(self):
+        self.pressed = False
+        if self.state == SpecialKeyStates.IDLE: 
+            self.state = SpecialKeyStates.WAITING_FOR_DELAY
+            self.pressed = True
+            self.last_press_time = time()
+            self.last_repeat_time = time()
+            
+        elif self.state == SpecialKeyStates.WAITING_FOR_DELAY: 
+            time_since = (time() - self.last_press_time) * 1000
+            if time_since >= self.DELAY_MS:
+                self.state = SpecialKeyStates.REPEATING
+                self.last_repeat_time = time()
+                
+        elif self.state == SpecialKeyStates.REPEATING: 
+            time_since = (time() - self.last_repeat_time) * 1000
+            if time_since >= self.REPEAT_MS:
+                self.pressed = True
+                self.last_repeat_time = time()
+
 class TextInput(UIElement):
     #! Add blocking: out of bounds write
+    #! Add Row/Columns
     """
     A Default TextInput
     """
@@ -269,6 +305,10 @@ class TextInput(UIElement):
         self.multiline = multiline
         self.max_length = max_length
         self.type = type
+        self.special_keys: dict[str, SpecialKey] = {}
+        
+        self.set_special_key_state(pg.K_RETURN)
+        self.set_special_key_state(pg.K_BACKSPACE)
     def get_text(self) -> str:
         return self.text
     def set_edit(self,*_):
@@ -299,25 +339,35 @@ class TextInput(UIElement):
                     return ''
             case _: return text
     
-    def keyboard_interaction(self):
-        if not self.shift and self._return and not pg.K_RETURN in self.pressed_keys:  # Add and for spam
-            self.set_used_keys()
-            return
-        if self.delete and not pg.K_BACKSPACE in self.pressed_keys : # Add and for spam
-            self.text = self.text[:-1] if self.text else ''
-            self.set_used_keys()
-            return
-        text = [self.TRANSLATION_TABLE.get(key,('',''))[self.shift] for key in self.event.KEYS if key not in self.pressed_keys]
-        if not self.multiline:
-            text = text.replace('\n','')
-        self.set_used_keys()
-        if self.max_length != -1 and len(self.text) + len(text) > self.max_length: 
+    def set_special_key_state(self, key: int): 
+        if key not in self.special_keys:
+            self.special_keys[key] = SpecialKey(500,50)
+    def update_special_key_state(self, key: int):
+        if key in self.event.KEYS:
+            self.special_keys[key].update()
             
-            return
-        if text:
-            self.text += self.type_check(''.join(text))
+        else:
+            self.special_keys[key].reset()
+
+    def get_special_key_state(self, key: int):
+        return self.special_keys[key].pressed
+    
+    def keyboard_interaction(self):
+        self.update_special_key_state(pg.K_RETURN)
+        self.update_special_key_state(pg.K_BACKSPACE)
         
-        print(text)
+        if self.get_special_key_state(pg.K_BACKSPACE):
+            self.text = self.text[:-1] if self.text else ''
+            return
+        
+        text = self.event.TEXTINPUT
+        if self.max_length != -1 and len(self.text) + len(text) > self.max_length: 
+            return
+        
+        if text:
+            self.text += text
+        if self.get_special_key_state(pg.K_RETURN):
+            self.text += '\n'
 
 class UISpinBox(UIElement): ...
 class UIColorPicker(UIElement): ...
@@ -338,12 +388,11 @@ class UIDropDown:
             lcom = [lambda *x: None for i in ltext]
         for i, (t, c) in enumerate(zip(ltext, lcom)):
             self.texts.append(t)
-            cb = lambda: t
             ux = [
                 [UXRect(-1,Color(col),size=Vector2(32,16)),
-                 UXText(text_get_callback=cb)] for col in ('#484848', '#969696', '#ffffff', '#000000')#! Has no effect on rendering
+                 UXText(text_get_callback=t)] for col in ('#484848', '#969696', '#ffffff', '#000000')#! Has no effect on rendering
             ]
-            print(t, c(), cb(),i )
+            print(t, c(),i )
             UIElement(self.app, Vector2(0,(i+1) * 16),Vector2(32,16),draggable=False,ux=UXWrapper(ux), parent=self.head)
             
         
