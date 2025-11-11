@@ -12,6 +12,8 @@ class Events:
         self.KEYDOWN = False
         self.KEYS = set()
         self.DOUBLE_CLICK = False
+        self.RETURN = False
+        self.TEXTINPUT = ''
         self.last_click = 0
         self.keys_to_control = [
             pg.K_a, # Add a new Node
@@ -31,6 +33,7 @@ class Events:
         self.WHEEL = 0 # Resets the Wheel, because pygame will not do this
         self.DOUBLE_CLICK = False
         self.MOUSE_POS = pg.mouse.get_pos()
+        self.TEXTINPUT = ''
         for event in pg.event.get():
             match event.type:
                 case pg.MOUSEBUTTONDOWN | pg.MOUSEBUTTONUP:
@@ -47,6 +50,8 @@ class Events:
                     self.KEYS.add(event.key)
                 case pg.KEYUP:
                     self.KEYS.remove(event.key)
+                case pg.TEXTINPUT:
+                    self.TEXTINPUT = event.text
                 case pg.QUIT:
                     self.QUIT = True
        
