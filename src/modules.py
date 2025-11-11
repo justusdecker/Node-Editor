@@ -5,3 +5,7 @@ import json, os
 import random
 from time import time
 pg.font.init()
+
+
+
+from typing import Callable
