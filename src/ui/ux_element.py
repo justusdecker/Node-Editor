@@ -124,17 +124,18 @@ FONT = pg.font.SysFont('Consolas',13)
 
 class UXText(UXElement):
     # + Add a snap point for x, so the text will not go outside the element!
-    def __init__(self, pos: Vector2 = Vector2(0,0), color: Color = Color('#dddddd'), anchor = 0,text_get_callback = lambda: ""):
+    def __init__(self, pos: Vector2 = Vector2(0,0), color: Color = Color('#dddddd'), anchor = 0,text_get_callback: Callable | str = lambda: ""):
         self.anchor = anchor
         self.pos = pos
         self.text_get_callback = text_get_callback
+        self.color = color
         super().__init__()
     @property
     def anchor_offset(self) -> Vector2:
         return [0,0.5,1][self.anchor]
     def draw(self, surf: Surface, offset: Vector2):
-        text = self.text_get_callback()
-        rendered = FONT.render(text, True, Color('#454545'))
+        text = self.text_get_callback() if not isinstance(self.text_get_callback, str) else self.text_get_callback
+        rendered = FONT.render(text, True, self.color)
         size = Vector2(*rendered.get_size())
         surf.blit(rendered, self.pos + offset - (size * self.anchor_offset))
         
