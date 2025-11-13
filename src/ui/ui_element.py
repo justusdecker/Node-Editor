@@ -103,9 +103,8 @@ class UIElement:
         offset = Vector2(0,0)
         parent = self.parent
         
-        while parent is not None:
-            offset += parent.pos
-            parent = parent.parent
+        if parent is not None:
+            offset += parent.abs_offset
             
         return offset
     
