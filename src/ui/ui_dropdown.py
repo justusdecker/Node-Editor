@@ -5,10 +5,11 @@ from src.ui.ui_manager import UIM
 class UIDropDown(UIElement):
     def __init__(self, app, pos, size, ux = None, draggable = False, **kwargs):
         kwargs['cb_lclick'] = self.toggle_dd
+        kwargs['anchor'] = "tl"
         ux=UXWrapper(
             ux = [
                 [UXRect(-1,Color(col),size=size),
-                 UXText(text_get_callback='')] for col in ('#484848', '#969696', '#ffffff', '#000000')
+                 UXText(text_get_callback=kwargs.get('title', ''))] for col in ('#484848', '#969696', '#ffffff', '#000000')
             ]
         )
         super().__init__(app, pos, size, ux, draggable, **kwargs)
@@ -34,8 +35,10 @@ class UIDropDown(UIElement):
         self.texts = []
         if lcom is None:
             lcom = [lambda *x: None for i in ltext]
+        print(ltext, lcom)
         self.sub_cbs = lcom
         for i, (t, c) in enumerate(zip(ltext, lcom)):
+            print(t,)
             self.texts.append(t)
             ux = [
                 [UXRect(-1,Color(col),size=self.size),
@@ -44,8 +47,9 @@ class UIDropDown(UIElement):
             
             uie = UIElement(
                 self.app, 
-                self.abs_offset + Vector2(0,(i+1) * self.size.y),
-                self.size,draggable=False,
+                Vector2(0,(i+1) * self.size.y),
+                self.size,
+                draggable=False,
                 ux=UXWrapper(ux), 
                 parent=self,
                 anchor="tl",
@@ -53,5 +57,5 @@ class UIDropDown(UIElement):
                 cb_dclick=lambda x: None,
                 visible=False
                 )
-            
+            print(self.abs_offset + Vector2(0,(i+1) * self.size.y), uie.abs_offset)
             self.sub.append(uie)
