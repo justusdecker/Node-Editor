@@ -1,18 +1,23 @@
 from src.constants import *
 from src.ui.ux_element import UXWrapper, UXText, UXRect
-class UIElement: ...
+from src.ui.ui_element import UIElement
 
-class UIDropDown:
-    def __init__(self,
-                 app,
-                 pos: Vector2,
-                 **kwargs):
-        self.app = app
-        self.head = UIElement(app, Vector2(0,0),Vector2(32,16),draggable=True)
+class UIDropDown(UIElement):
+    def __init__(self, app, pos, size, ux = None, draggable = False, **kwargs):
+        ux=UXWrapper(
+            ux = [
+                [UXRect(-1,Color(col),size=size),
+                 UXText(text_get_callback='')] for col in ('#484848', '#969696', '#ffffff', '#000000')
+            ]
+        )
+        super().__init__(app, pos, size, ux, draggable, **kwargs)
         self.sub = []
-        
-    def get_text(self,id: int):
-        return self.texts[id]
+        kwargs.get('ltext')
+        kwargs.get('lcom')
+        #self.set_subs()
+    @property
+    def text(self) -> str:
+        return "test"
     def set_subs(self, ltext: list[str], lcom: list[Callable] | None = None):
         self.texts = []
         if lcom is None:
@@ -20,8 +25,19 @@ class UIDropDown:
         for i, (t, c) in enumerate(zip(ltext, lcom)):
             self.texts.append(t)
             ux = [
-                [UXRect(-1,Color(col),size=Vector2(32,16)),
-                 UXText(text_get_callback=t)] for col in ('#484848', '#969696', '#ffffff', '#000000')#! Has no effect on rendering
+                [UXRect(-1,Color(col),size=self.size),
+                 UXText(text_get_callback=t)] for col in ('#484848', '#969696', '#ffffff', '#000000')
             ]
-            print(t, c(),i )
-            UIElement(self.app, Vector2(0,(i+1) * 16),Vector2(32,16),draggable=False,ux=UXWrapper(ux), parent=self.head)
+            
+            uie = UIElement(
+                self.app, 
+                self.abs_offset + Vector2(0,(i+1) * self.size.y),
+                self.size,draggable=False,
+                ux=UXWrapper(ux), 
+                parent=self,
+                anchor="tl",
+                cb_lclick=c,
+                cb_dclick=lambda x: None
+                )
+            
+            self.sub.append(uie)
