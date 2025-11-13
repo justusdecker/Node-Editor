@@ -83,7 +83,7 @@ class UIManager:
         for id in ids[::-1]:
             object = self.__get_object_by_id(id)
             
-            if UIManager.get_dead_uie():
+            if UIManager.get_dead_uie(object, self.blocked):
                 self.blocked = -1
                 break
             
