@@ -1,7 +1,6 @@
 from src.constants import *
 from src.ui.ux_element import UXWrapper, UXText
-
-class UIElement: ...
+from src.ui.ui_element import UIElement
 
 class SpecialKeyStates:
     IDLE = 0
@@ -40,7 +39,7 @@ class SpecialKey:
                 self.pressed = True
                 self.last_repeat_time = time()
 
-class TextInput(UIElement):
+class UITextInput(UIElement):
     #! Add blocking: out of bounds write
     #! Add Row/Columns
     # 
