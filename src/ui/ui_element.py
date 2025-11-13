@@ -11,10 +11,11 @@ class UIGroup:
 
 UI_DEFAULT_GROUP = UIGroup('default')
 
-ANCHORS = {'t': -1, 'c': -.5, 'b': 0, 'l': -1, 'r': 0}
+ANCHORS = {'t': 0.0, 'c': 0.5, 'b': 1.0, 'l': 0.0, 'r': 1.0}
 
 class UIElement: ...
 class UIElement:
+    #! Fix click in non hover state -> sliding into uie will count as click
     """
     The Base Class for UIElements
     """
@@ -44,15 +45,15 @@ class UIElement:
         self.anchor = kwargs.get('anchor', 'cc')
         self.parent = kwargs.get('parent',None)
         
-        self.callback_hover = kwargs.get('cb_hover',lambda x: print(x)) #! change ux
-        self.callback_unhover = kwargs.get('cb_unhover',lambda x: print(x)) #! change ux
-        self.callback_lclick = kwargs.get('cb_lclick',lambda x: print(x)) #! change ux
-        self.callback_unclick = kwargs.get('cb_unclick',lambda x: print(x))
-        self.callback_rclick = kwargs.get('cb_rclick',lambda x: print(x))
-        self.callback_dclick = kwargs.get('cb_dclick',lambda x: print(x)) #! change ux
-        self.callback_drag = kwargs.get('cb_drag',lambda x: print(x)) #! change ux
-        self.callback_wheel = kwargs.get('cb_wheel',lambda x: print(x))
-        self.callback_keypress = kwargs.get('cb_keypress',lambda x: print(x))
+        self.callback_hover = kwargs.get('cb_hover',lambda x: print(f"hover: {x}"))
+        self.callback_unhover = kwargs.get('cb_unhover',lambda x: print(f"unhover: {x}"))
+        self.callback_lclick = kwargs.get('cb_lclick',lambda x: print(f"LEFT: {x}"))
+        self.callback_unclick = kwargs.get('cb_unclick',lambda x: None)
+        self.callback_rclick = kwargs.get('cb_rclick',lambda x: print(f"RIGHT: {x}"))
+        self.callback_dclick = kwargs.get('cb_dclick',lambda x: print(f"DOUBLE: {x}"))
+        self.callback_drag = kwargs.get('cb_drag',lambda x: print(f"DRAG: {x}"))
+        self.callback_wheel = kwargs.get('cb_wheel',lambda x: print(f"WHEEL: {x}"))
+        self.callback_keypress = kwargs.get('cb_keypress',lambda x: print(f"KEY: {x}"))
         
         self.blocked = False
         self.click_offset = Vector2(0,0)
@@ -92,9 +93,7 @@ class UIElement:
         """
         #TODO add offset code here
         x,y = self.anchor
-        self.size + Vector2(ANCHORS[x], ANCHORS[y])
-        
-        return self.size + Vector2(ANCHORS[x], ANCHORS[y])
+        return Vector2(ANCHORS[x] * self.size.x, ANCHORS[y] * self.size.y)
     
     @property
     def parent_offset(self) -> Vector2:
