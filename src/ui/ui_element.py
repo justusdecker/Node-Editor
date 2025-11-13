@@ -123,15 +123,14 @@ class UIElement:
         Can only be None if the first upper parent is None.
         
         """
-        parent = self.parent
         
-        while 1:
-            if parent.parent is not None:
-                parent = parent.parent
-            else:
-                break
+        parent = self.parent
+        backup = self.parent
+        i = 0
+        while parent.parent is not None:
+            parent = parent.parent
             
-        return parent
+        return parent if i > 0 else backup
     
     def mouse_interaction(self):
         
