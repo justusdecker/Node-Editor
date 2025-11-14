@@ -112,11 +112,17 @@ class UXPolygon(UXElement):
 class UXImage(UXElement):
     def __init__(self,
                  pos: Vector2,
-                 path: str,
+                 path: str | Surface,
                  alpha: bool):
         self.pos = pos
-        self.image = pg.image.load(path)
+        if isinstance(path, str):
+            self.image = pg.image.load(path)
+        elif isinstance(path, Surface):
+            self.image = path
+            
         self.alpha = alpha
+    def update(self, surf: Surface):
+        self.image = surf
     def draw(self, surf):
         surf.blit(self.image, self.pos)
 
