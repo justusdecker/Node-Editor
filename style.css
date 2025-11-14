@@ -1,0 +1,168 @@
+/* CSS: Styling und Layout (UNVERÄNDERT ZUM VORHERIGEN POST) */
+        body {
+            margin: 0;
+            overflow: hidden; 
+            font-family: sans-serif;
+            background-color: #000; /* Schwarzer Hintergrund */
+        }
+
+        #editor-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            cursor: grab; 
+        }
+
+        #node-graph {
+            position: absolute;
+            transform-origin: 0 0; 
+        }
+
+        .node {
+            position: absolute;
+            background-color: #383838; /* Dunkelgrauer Node-Hintergrund */
+            border: 2px solid #555;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            width: 150px;
+            min-height: 120px;
+            color: white;
+            z-index: 10;
+        }
+
+        .node-header {
+            background-color: #4a4a4a; /* Hellgrauer Header */
+            padding: 5px 8px;
+            font-weight: bold;
+            border-top-left-radius: 2px;
+            border-top-right-radius: 2px;
+            cursor: move; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .node-title {
+            font-family: 'cursive', sans-serif; /* Handschriftliche Optik */
+            font-size: 20px;
+            flex-grow: 1;
+            text-align: center;
+            padding: 0 10px;
+        }
+
+        .header-btn {
+            font-size: 18px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        
+        .header-btn.close {
+            color: #ff3333; /* Rotes X */
+        }
+        
+        .header-btn.minimize {
+            color: #cccccc; /* Graues V/Haken */
+        }
+
+        .socket-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px;
+            font-size: 16px;
+        }
+
+        .socket {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px; /* Quadratische Sockets */
+            border: 1px solid black;
+            cursor: crosshair;
+            z-index: 20;
+            position: relative; 
+            box-sizing: border-box;
+            flex-shrink: 0; 
+        }
+        
+        /* 3D-Design: Input-Sockets links, Output-Sockets rechts */
+        .socket-row span:first-child { 
+             margin-right: auto;
+        }
+        .socket-row span:last-child {
+             margin-left: auto;
+        }
+        .socket.input { 
+            order: 1; 
+        }
+        .socket.output {
+            order: 3;
+        }
+        .socket-row span {
+            order: 2;
+            padding: 0 5px;
+            font-family: 'cursive', sans-serif;
+            font-size: 16px;
+        }
+        
+        /* Spezifische Socket-Farben (Typen) */
+        .socket[data-type="float"] { background-color: #ffff00; border-color: #aaaa00; } /* Gelb (Koordinaten) */
+        .socket[data-type="int"] { background-color: #0000ff; border-color: #0000aa; } /* Blau (Koordinaten) */
+        .socket[data-type="exec"] { background-color: #cc0000; border-color: #880000; } /* Rot (Execution/ID unten) */
+        
+        /* Spezieller Socket für den unteren Bereich (z.B. ID) */
+        .bottom-socket-row {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            padding: 0;
+        }
+        .bottom-socket-row .socket {
+             margin: 0;
+        }
+        
+        /* SVG-Element für Kanten (edges) */
+        #edge-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        /* Stil für gespeicherte Kanten */
+        .edge-path {
+            pointer-events: all; 
+            cursor: pointer;
+            transition: stroke-width 0.1s;
+        }
+
+        .edge-path:hover {
+            stroke-width: 5; 
+        }
+        
+        /* UI für Speichern/Laden */
+        #toolbar {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 100;
+            color: white;
+        }
+
+        #toolbar button {
+            padding: 8px 15px;
+            margin-left: 5px;
+            cursor: pointer;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 3px;
+        }
