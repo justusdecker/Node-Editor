@@ -73,23 +73,22 @@ class UIElement:
 ```
 ## 🎴 Phase 2: Add all needed UI Elements
 Add a variety of new UI Elements
-* Node
+* [ ] Node
     * Clicking, holding the header and moving the mouse will move the Node accross the space.
     * Clicking and releasing on the header will let the user input a new title
     * Clicking on X will remove the Node
     * Clicking on the arrow will holster / unholster the Node(Activate / Deactivate UI)
-* Button
-* DragButton(For Knot Connections & Nodes)
+* [x] Button
+* [ ] DragButton(For Knot Connections & Nodes)
     * uses the `press` attribute to get the `draggablilty`
 
-* SpinBox
-* ColorPicker(currently show color & use the tkinter colorpicker for simplicity)
-* TextInput(With Type Check)
-* MultiLineTextInput
-* DropDown
-* MenuBar
-* MenuItem
-* SideBar(For Settings etc.)
+* [ ] SpinBox
+* [ ] ColorPicker(currently show color & use the tkinter colorpicker for simplicity)
+* [x] TextInput(With Type Check)
+* [x] MultiLineTextInput
+* [x] DropDown
+* [x] MenuBar
+* [ ] SideBar(For Settings etc.)
 
 ## 🛡️ Phase 3: UI Blocking System & Focus Management (The Overlap Fix)
 ### Goal: Prevent overlapping input events (like a button click activating a node drag underneath).
