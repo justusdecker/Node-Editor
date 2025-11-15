@@ -7,6 +7,42 @@
 </head>
 <body>
 
+<div class="node" style="left: 100px; top: 100px;">
+    
+    <div class="node-header">
+        <span class="header-btn minimize">V</span> 
+        
+        <span class="node-title">Default Node</span>
+        
+        <span class="header-btn close">X</span>
+    </div>
+    
+    <div class="body">
+        <div class="socket-row">
+            <div 
+                class="socket input" 
+                data-type="float" 
+                data-name="Value In"
+            ></div>
+            
+            <span>Input A</span> 
+            
+            <span></span> 
+        </div>
+        <div class="socket-row">
+            <span></span>
+            
+            <span>Output B</span>
+            
+            <div 
+                class="socket output" 
+                data-type="int" 
+                data-name="Index Out"  
+            ></div>
+        </div>
+    </div>
+</div>
+
 <div id="editor-container">
     <svg id="edge-svg"></svg>
     <div id="node-graph">
@@ -17,7 +53,6 @@
     <button id="save-btn">💾 Speichern</button>
     <button id="load-btn">↩️ Laden</button>
 </div>
-
-<script src="./scripts/ai_decluster_and_understanding.js"></script>
+<script src="./scripts/node_related.js"></script>
 </body>
 </html>
