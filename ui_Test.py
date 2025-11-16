@@ -27,5 +27,6 @@ D = UITextInput(APP, Vector2(130,0),Vector2(200,100),parent=A, multiline=True, m
 E = UIDropDown(APP, Vector2(255,30),Vector2(32,16),draggable=True,title='ABC')
 CP = UIColorPicker(APP, Vector2(100,0))
 SB = UISpinBox(APP,Vector2(250,300),0.2, 2)
+SBN = UISideBar(APP)
 E.set_subs(['ABC','DEF','GHI'])
 APP.run()
