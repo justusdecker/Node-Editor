@@ -3,7 +3,6 @@ class UIManager:
         self.QUEUE = []
         self.blocked = -1
         
-    
     def add_to_queue(self,object):
         """
         This adds a ``UIElement`` to the render queue.
