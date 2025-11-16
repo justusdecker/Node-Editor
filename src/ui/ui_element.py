@@ -131,6 +131,10 @@ class UIElement:
             
         return parent if i > 0 else backup
     
+    @property
+    def get_internal_mouse_pos(self) -> Vector2:
+        return self.event.MOUSE_POS - self.abs_offset
+    
     def mouse_interaction(self):
         
         if self.event.MOUSE_LEFT and not self.hover and not self.blocked:
