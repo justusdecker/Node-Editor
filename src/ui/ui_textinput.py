@@ -119,12 +119,17 @@ class UITextInput(UIElement):
             self.pressed_keys.add(key)
     
     def type_check(self, text: str) -> str:
+        """
+        """
         match self.type:
             case 1: 
                 if text.isdecimal(): return text
                 return ''
             case 2:
                 try:
+                    if self.text + text == '-':
+                        return text
+                    
                     float(self.text + text)
                     return text
                 except:
@@ -158,7 +163,7 @@ class UITextInput(UIElement):
         text = self.event.TEXTINPUT
         if self.max_length != -1 and len(self.text) + len(text) > self.max_length: 
             return
-        
+        text = self.type_check(text)
         if text:
             self.text += text
         if self.multiline and self.get_special_key_state(pg.K_RETURN):
