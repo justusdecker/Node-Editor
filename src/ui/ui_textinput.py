@@ -1,5 +1,5 @@
 from src.constants import *
-from src.ui.ux_element import UXWrapper, UXText
+from src.ui.ux_element import UXWrapper, UXText, UXRect
 from src.ui.ui_element import UIElement
 
 class SpecialKeyStates:
@@ -43,7 +43,6 @@ class SpecialKey:
 class UITextInput(UIElement):
     #! Add blocking: out of bounds write
     #! Add Row/Columns
-    #! After Deleting all text too long, text can no longer written
     """
     A Default TextInput
     """
@@ -76,10 +75,14 @@ class UITextInput(UIElement):
         if ux is None:
             
             UIELEMENT_TEXT = [
-            [UXText(color=Color('#484848'),text_get_callback=self.get_text)],
-            [UXText(color=Color('#969696'),text_get_callback=self.get_text)],
-            [UXText(color=Color('#ffffff'),text_get_callback=self.get_text)],
-            [UXText(color=Color('#000000'),text_get_callback=self.get_text)]
+            [UXRect(-1,Color('#242424'),size=size),
+                UXText(color=Color('#969696'),text_get_callback=self.get_text)],
+            [UXRect(-1,Color('#242424'),size=size),
+                UXText(color=Color('#ffffff'),text_get_callback=self.get_text)],
+            [UXRect(-1,Color('#242424'),size=size),
+                UXText(color=Color('#ffffff'),text_get_callback=self.get_text)],
+            [UXRect(-1,Color('#242424'),size=size),
+                UXText(color=Color('#000000'),text_get_callback=self.get_text)]
         ]
             ux = UXWrapper(UIELEMENT_TEXT)
         super().__init__(app, pos, size, ux, draggable, **kwargs)
@@ -110,7 +113,6 @@ class UITextInput(UIElement):
         return pg.K_LSHIFT in self.event.KEYS or pg.K_RSHIFT in self.event.KEYS
 
     def update(self):
-        print(self.is_editing, self.text, self.event.KEYS)
         return super().update()
     def set_used_keys(self):
         for key in self.event.KEYS:
@@ -127,6 +129,8 @@ class UITextInput(UIElement):
                     return text
                 except:
                     return ''
+            case 3:
+                return text #! will be changed later
             case _: return text
     
     def set_special_key_state(self, key: int): 
@@ -157,5 +161,5 @@ class UITextInput(UIElement):
         
         if text:
             self.text += text
-        if self.get_special_key_state(pg.K_RETURN):
+        if self.multiline and self.get_special_key_state(pg.K_RETURN):
             self.text += '\n'
