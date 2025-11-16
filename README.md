@@ -88,7 +88,7 @@ Add a variety of new UI Elements
 * [x] MultiLineTextInput
 * [x] DropDown
 * [x] MenuBar
-* [ ] SideBar(For Settings etc.)
+* [x] SideBar(For Settings etc.)
 
 ## 🛡️ Phase 3: UI Blocking System & Focus Management (The Overlap Fix)
 ### Goal: Prevent overlapping input events (like a button click activating a node drag underneath).
