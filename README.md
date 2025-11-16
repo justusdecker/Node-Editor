@@ -83,7 +83,7 @@ Add a variety of new UI Elements
     * uses the `press` attribute to get the `draggablilty`
 
 * [ ] SpinBox
-* [ ] ColorPicker(currently show color & use the tkinter colorpicker for simplicity)
+* [x] ColorPicker(currently show color & use the tkinter colorpicker for simplicity)
 * [x] TextInput(With Type Check)
 * [x] MultiLineTextInput
 * [x] DropDown
@@ -113,36 +113,10 @@ TaskDescriptionInput ManagerImplement a centralized InputManager to control the 
                 if element.handle_input(event):
                     break # Input consumed, stop checking
 ```
-## 🎨 Phase 4: Standard UI Element ImplementationGoal: 
-Implement the new interactive components requested.FeatureImplementation NotesTextEingabeMust handle text rendering, cursor blinking, input events (backspace, enter), and integrate with the Blocking System to consume keyboard input when active.ButtonBasic implementation with Hover, Pressed, and Normal visual states, plus an on_click callback.DragButton (Knot)Specialized button used for connection points or node handles. Requires tracking mouse delta to move itself (and associated connections) when pressed.Slider / NumericInputNumericInput: Uses TextInput validation and adds two small arrow buttons for single-step value changes. Slider: Includes a track and a draggable handle to interpolate values.DropDownConsists of a closed button and a list view. Crucially: The list view must push itself onto the InputManager stack when opened to block other interactions until a selection is made.
-## 🐍 Python Pseudocode (Phase 4 - DragButton Excerpt)class DragButton(UIElement):
-```python
-    def __init__(self, rect, parent_node):
-        super().__init__(rect)
-        self.parent_node = parent_node
-        self.is_dragging = False
 
-    def handle_input(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN and self.check_collision(event.pos):
-            self.is_dragging = True
-            # Store offset to prevent element jump
-            self.drag_offset = (event.pos[0] - self.rect.x, event.pos[1] - self.rect.y)
-            return True
-        elif event.type == pygame.MOUSEBUTTONUP and self.is_dragging:
-            self.is_dragging = False
-            return True
-        elif event.type == pygame.MOUSEMOTION and self.is_dragging:
-            # Update position based on mouse movement and initial offset
-            new_x = event.pos[0] - self.drag_offset[0]
-            new_y = event.pos[1] - self.drag_offset[1]
-            self.rect.topleft = (new_x, new_y)
-            # Propagate movement to parent node or connections if necessary
-            return True
-        return False
-```
-## ✨ Phase 5: Visual Feedback and PolishingGoal: 
+## ✨ Phase 4: Visual Feedback and PolishingGoal: 
 Provide clear visual context to the user.FeatureImplementation NotesNode OutliningAdd an is_selected state to the Node class. When true, draw a distinct, high-contrast border (e.g., bright yellow) around the Node's bounding box.Z-Order CheckConfirm that the outline is drawn above the node's background but below any foreground UI elements within the node.
-### 🐍 Python Pseudocode (Phase 5)class Node:
+### 🐍 Python Pseudocode (Phase 4)class Node:
 ```python
     # ... (initialization code)
 
