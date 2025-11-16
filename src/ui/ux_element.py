@@ -123,8 +123,8 @@ class UXImage(UXElement):
         self.alpha = alpha
     def update(self, surf: Surface):
         self.image = surf
-    def draw(self, surf):
-        surf.blit(self.image, self.pos)
+    def draw(self, surf, offset):
+        surf.blit(self.image, self.pos+offset)
 
 FONT = pg.font.SysFont('Consolas',13)
 
