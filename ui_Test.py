@@ -1,8 +1,6 @@
 from src.app import App
 from src.ui.utils import *
 from src.constants import *
-from src.ui.ui_colorpicker import color_rect
-pg.image.save(color_rect(0.2, 64),'test.png')
 APP = App()
 pg.key.set_repeat(500,50)
 M = UIMenuBar(APP, Vector2(0,0),Vector2(32,16))
