@@ -82,7 +82,7 @@ Add a variety of new UI Elements
 * [ ] DragButton(For Knot Connections & Nodes)
     * uses the `press` attribute to get the `draggablilty`
 
-* [ ] SpinBox
+* [x] SpinBox
 * [x] ColorPicker(currently show color & use the tkinter colorpicker for simplicity)
 * [x] TextInput(With Type Check)
 * [x] MultiLineTextInput
