@@ -19,6 +19,7 @@ class SpecialKey:
         self.pressed = False
     def reset(self):
         self.state = SpecialKeyStates.IDLE
+        self.pressed = False
     def update(self):
         self.pressed = False
         if self.state == SpecialKeyStates.IDLE: 
@@ -42,7 +43,7 @@ class SpecialKey:
 class UITextInput(UIElement):
     #! Add blocking: out of bounds write
     #! Add Row/Columns
-    # 
+    #! After Deleting all text too long, text can no longer written
     """
     A Default TextInput
     """
@@ -107,6 +108,10 @@ class UITextInput(UIElement):
     @property
     def shift(self) -> bool:
         return pg.K_LSHIFT in self.event.KEYS or pg.K_RSHIFT in self.event.KEYS
+
+    def update(self):
+        print(self.is_editing, self.text, self.event.KEYS)
+        return super().update()
     def set_used_keys(self):
         for key in self.event.KEYS:
             self.pressed_keys.add(key)
@@ -130,7 +135,6 @@ class UITextInput(UIElement):
     def update_special_key_state(self, key: int):
         if key in self.event.KEYS:
             self.special_keys[key].update()
-            
         else:
             self.special_keys[key].reset()
 
