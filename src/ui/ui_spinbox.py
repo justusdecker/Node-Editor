@@ -4,7 +4,6 @@ from src.ui.ux_element import UXWrapper, UXText, UXRect
 from src.constants import *
 class UISpinBox(UIElement): 
     def __init__(self, app, pos,increment_by: float | int,round_by: int, **kwargs):
-        # < 255 > btn - textinput(int | float) - btn
         kwargs['anchor'] = 'tl'
         self.increment_by = increment_by
         self.round_by = round_by
