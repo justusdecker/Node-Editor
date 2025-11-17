@@ -10,4 +10,5 @@ from src.ui.ui_menu import UIMenuBar
 from src.ui.ui_colorpicker import UIColorPicker
 from src.ui.ui_spinbox import UISpinBox
 from src.ui.ui_sidebar import UISideBar
+from src.ui.ui_node import UINode
 from src.ui.constants import Anchors
