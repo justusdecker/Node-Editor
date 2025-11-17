@@ -27,4 +27,17 @@ CP = UIColorPicker(APP, Vector2(100,0))
 SB = UISpinBox(APP,Vector2(250,300),0.2, 2)
 SBN = UISideBar(APP)
 E.set_subs(['ABC','DEF','GHI'])
+
+NODE_1 = UINode(APP, 
+                Vector2(150,150),
+                [
+                    [False, "test1", str],
+                    [False, "test2", str],
+                    [False, "test3", str],
+                    [True, "test1", str],
+                    [True, "test2", str],
+                    [True, "test3", str],
+                ]
+                )
+
 APP.run()
