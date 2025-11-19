@@ -1,6 +1,5 @@
-from src.ui.ui_element import UIElement
-from src.ui.ui_textinput import UITextInput
-from src.ui.ux_element import UXWrapper, UXText, UXRect, UXCircle
+from pig_ui import UIElement
+from pig_ui import UITextInput
 from src.constants import *
 from typing import Any
 """
