@@ -1,4 +1,3 @@
-from src.app import App
 from src.ui.utils import *
 from src.constants import *
 APP = App()
