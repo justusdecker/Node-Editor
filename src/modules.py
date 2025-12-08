@@ -8,3 +8,5 @@ pg.font.init()
 
 from typing import Callable
 from src.ui.utils import *
+#from pig_ui import draw_beziere
+from pig_ui import *

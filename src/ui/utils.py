@@ -17,4 +17,4 @@ from pig_ui import (
     App
 )
 
-from src.ui.ui_node import UINode
+from src.ui.ui_node import UINode, UINM
