@@ -1,6 +1,6 @@
 from src.ui.utils import *
 from src.constants import *
-
+from typing import Any
 from src.ui.ui_node import UINM
 class NewApp(App): 
     """
@@ -36,6 +36,8 @@ M.set_subs(
         }
     ]
 )
+
+
 OFFSET = UIElement(APP, Vector2(0,0),Vector2(1280,720),UXWrapper([[],[],[],[]]))
 
 BG = UIElement(APP, Vector2(0,0),Vector2(1280,720),UXWrapper([[],[],[],[]]))
@@ -70,7 +72,7 @@ NODE_1 = UINode(APP,
                 Vector2(150,150),
                 [
                     [False, "test1", str],
-                    [False, "test2", str],
+                    [False, "test2", Any],
                     [False, "test3", str],
                     [True, "test1", str],
                     [True, "test2", str],
@@ -82,10 +84,10 @@ NODE_2 = UINode(APP,
                 Vector2(150,150),
                 [
                     [False, "test1", str],
-                    [False, "test2", str],
-                    [False, "test3", str],
-                    [True, "test1", str],
-                    [True, "test2", str],
+                    [False, "test2", bool],
+                    [False, "test3", int],
+                    [True, "test1", int],
+                    [True, "test2", float],
                     [True, "test3", str],
                 ]
                 )
